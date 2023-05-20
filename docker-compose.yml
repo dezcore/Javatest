@@ -2,7 +2,12 @@ version: '3.4'
 
 services:
   javatest:
-    image: java
+    image: javatest
     build:
       context: .
       dockerfile: ./Dockerfile
+    volumes:
+      - jvolume:/app
+      
+volumes:
+  jvolume:

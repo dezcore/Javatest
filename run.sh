@@ -1,4 +1,9 @@
 #!/bin/bash
 
-javac -cp ./lib/gson-2.10.jar Test.java 
-java -cp .:./lib/gson-2.10.jar Test 
+#javac -cp "libs/*" src/Test.java 
+#java -cp .:libs/* src.Test 
+
+#Docker
+docker compose down -v
+docker build -t javatest .
+docker compose up

@@ -179,9 +179,13 @@ public class Test{
         }
     }
 
-    public static void main(String[] args) {
+    public static void testParseHtml() {
         String htmlFilePath = "./data/test";
         String html = getFileContent("../data/test.html");
         parseHtml(htmlFilePath, html);
+    }
+
+    public static void main(String[] args) {
+        GeneratePDF.fileToPDF();    
     }
 }

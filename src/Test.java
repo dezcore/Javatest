@@ -1,14 +1,20 @@
 package src;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,12 +22,14 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+
+
 
 public class Test{
     private static String readFromInputStream(InputStream inputStream) throws IOException {
@@ -91,13 +99,27 @@ public class Test{
         }
     }
 
+    public static void appendFile(String fileName, String content) {
+        BufferedWriter writer;
+
+        try {
+            //System.out.println(new File(".").getAbsolutePath());
+            writer = new BufferedWriter(new FileWriter(fileName, true));
+            writer.append(content);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void parseHtml(String filePath, String html) {
         Document doc = Jsoup.parse(html);
         Elements elements = doc.select("script");
-
+        
         for(Element element : elements) {
             if(element.data().contains("DOCS_modelChunk =")) {
-                writeLargeFile(filePath, element.data());
+                //writeLargeFile(filePath, element.data());
+                appendFile(filePath, element.data());
                 //System.out.println("element : " + element.data());
             }
         }
@@ -121,8 +143,16 @@ public class Test{
                 if(current != null && current.isJsonObject()) {
                     jsonObj = current.getAsJsonObject();
                     targetElement = jsonObj.get("s");
-                    if(targetElement != null)
+                    if(targetElement != null) {
+                        //System.out.println("Array : ");
                         System.out.println(targetElement.getAsString());
+                    }/*else {
+                        try {
+                            System.out.println(jsonObj);
+                        } catch(UnsupportedOperationException e) {
+                        }
+                        
+                    }*/
                 }
             }
         }
@@ -130,9 +160,13 @@ public class Test{
 
     public static void testJson(String json) {
         JsonElement element;
-        
+
         try{
-            element = JsonParser.parseString(json);
+            //JsonReader.setLenient(true);
+            JsonReader reader = new JsonReader(new StringReader(json));
+            reader.setLenient(true);
+            element = JsonParser.parseReader(reader);
+            //JsonParser.parseString(json);
             if(element.isJsonArray()) {
                 jsonArrayHandler(element.getAsJsonArray());
             } else if(element.isJsonObject()) {
@@ -149,23 +183,23 @@ public class Test{
 
         boolean matchFound = matcher.find();
         if(matchFound) {
+            //System.out.println("Match found : " +   matcher.groupCount());
             for(int i=0; i <= matcher.groupCount(); i++) {
                 //System.out.println("testRegex : " + matcher.group(i));
                 //System.out.println("Groupe " + i + " : " + m.group(i));
                 //System.out.println("Match found : "+  matcher.group());
                 testJson(matcher.group());
             }
-        } else {
-            System.out.println("Match not found");
         }
     }
+
     public static void main(String[] args) {
         String content = "";
-        String htmlFilePath = "./data/text";
+        String htmlFilePath = "./data/test";
         String html = getFileContent("../data/test.html");
          //String content = getFileContent("./data/test");
         parseHtml(htmlFilePath, html);
-        content = getFileContent("../data/text");
+        content = getFileContent("../data/test");
         //System.out.println(content);
         testRegex(content);
     }
